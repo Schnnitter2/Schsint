@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="{{ language }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Schsint · Scan {{ report.scan_id }}</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1020;--panel:#131b2e;--line:#26334d;--text:#e7edf7;--muted:#9aa9bf;--blue:#61a8ff;--green:#57d6a0;--amber:#f3be68;--red:#ff7f87}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -20%,#19345b 0,transparent 45%),var(--bg);color:var(--text);font:15px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    main{max-width:1080px;margin:auto;padding:40px 22px 72px}.brand{color:var(--blue);font-size:.8rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase}.hero{padding:28px 0 22px}.hero h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.1;margin:.3rem 0}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:22px 0}.card,section{background:linear-gradient(145deg,#172239,#11192a);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 12px 30px #03071255}.metric{font-size:1.8rem;font-weight:750}.label{color:var(--muted);font-size:.85rem}section{margin:16px 0}h2{font-size:1.2rem;margin:0 0 14px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em}a{color:var(--blue);overflow-wrap:anywhere}.pill{display:inline-block;padding:3px 9px;border-radius:20px;background:#1f3150;color:#a8ceff;font-size:.78rem}.notice{border-left:3px solid var(--amber);padding:10px 14px;background:#f3be6810;color:#d9e1ef}.empty{color:var(--muted);padding:12px 0}footer{margin-top:24px;color:var(--muted);font-size:.82rem}code{overflow-wrap:anywhere}@media(max-width:640px){main{padding:25px 14px 48px}section{padding:15px;overflow-x:auto}th,td{padding:8px 6px}}
+    @media(prefers-reduced-motion:no-preference){.card,section{animation:appear .35s ease-out both}@keyframes appear{from{opacity:.5;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}}
+  </style>
+</head>
+<body><main>
+  <header class="hero"><div class="brand">Schsint · Privacy-first public information</div><h1>Scan report</h1><p class="muted">A structured record of a permitted check. A username match does not establish identity.</p></header>
+  <div class="grid">
+    <div class="card"><div class="label">Target handle</div><div class="metric">{{ report.username }}</div></div>
+    <div class="card"><div class="label">Public matches</div><div class="metric">{{ report.findings|length }}</div></div>
+    <div class="card"><div class="label">Modules</div><div class="metric">{{ report.modules|length }}</div></div>
+    <div class="card"><div class="label">Duplicates removed</div><div class="metric">{{ report.duplicate_count }}</div></div>
+  </div>
+  <section><h2>1. Overview</h2><p>Scan <code>{{ report.scan_id }}</code> completed at {{ report.completed_at }}. No conclusion about a person's identity is made.</p></section>
+  <section><h2>2. Scan information</h2><p><strong>Started:</strong> {{ report.started_at }}<br><strong>Completed:</strong> {{ report.completed_at }}<br><strong>Report version:</strong> Schsint 0.1.0</p></section>
+  <section><h2>3. Sources checked</h2>{% if report.modules %}<table><thead><tr><th>Module</th><th>Status</th><th>Sources</th><th>Details</th></tr></thead><tbody>{% for module in report.modules %}<tr><td>{{ module.module }}</td><td><span class="pill">{{ module.status.value }}</span></td><td>{{ module.checked_sources }}</td><td>{{ module.error or 'No additional details' }}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="empty">No modules were enabled.</p>{% endif %}</section>
+  <section><h2>4. Public profile matches</h2>{% if report.findings %}<table><thead><tr><th>Source</th><th>URL</th><th>Module</th><th>Status</th><th>Retrieved</th><th>Confidence note</th></tr></thead><tbody>{% for finding in report.findings %}<tr><td>{{ finding.source }}</td><td><a href="{{ finding.url }}" rel="noopener noreferrer">{{ finding.url }}</a></td><td>{{ finding.module }}</td><td>{{ finding.status }}</td><td>{{ finding.retrieved_at }}</td><td>{{ finding.confidence_note }}</td></tr>{% endfor %}</tbody></table>{% else %}<p class="empty">No matches were collected. An empty result is not proof that no account exists.</p>{% endif %}</section>
+  <section><h2>5. Source links</h2><p>Links, if any, are listed in Public profile matches. Schsint does not infer a person from a matching handle.</p></section>
+  <section><h2>6. Duplicate results</h2><p>{{ report.duplicate_count }} duplicate result(s) removed by canonical URL and status.</p></section>
+  <section><h2>7. Failed modules</h2>{% set failures = report.modules|selectattr('status.value','equalto','failed')|list %}{% if failures %}<ul>{% for module in failures %}<li>{{ module.module }}: {{ module.error }}</li>{% endfor %}</ul>{% else %}<p class="empty">No module failures.</p>{% endif %}</section>
+  <section><h2>8. Confidence and limitations</h2><p class="notice">A matching username is only a lead, not proof that profiles belong to one person. Public pages may be outdated, reassigned, spoofed, or misclassified. This report must not be used for decisions about individuals.</p></section>
+  <section><h2>9. Technical summary</h2><p>Engine: asynchronous, bounded plugin runner. Sources checked: {{ report.modules|sum(attribute='checked_sources') }}. Result deduplication: normalized URL host and fragment plus status.</p></section>
+  <footer>Generated by Schsint. This report is self-contained and does not load external scripts, fonts, charts, or assets.</footer>
+</main></body></html>
